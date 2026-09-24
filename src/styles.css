@@ -167,3 +167,12 @@
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 20%, transparent);
   }
 }
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

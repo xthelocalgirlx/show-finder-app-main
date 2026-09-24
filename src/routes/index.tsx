@@ -769,27 +769,27 @@ function GeoRecommendationsCarousel({
             Check out these recommendations in your area
           </h3>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Upcoming concerts {city ? `near ${city}` : "nearby"} · Chronologically ordered by date and time
+            Upcoming concerts {city ? `near ${city}` : "nearby"}
           </p>
         </div>
 
         {/* Carousel Navigation Chevrons */}
-        <div className="hidden sm:flex items-center gap-1.5">
+        <div className="hidden sm:flex items-center gap-2">
           <button
             type="button"
             onClick={scrollLeft}
-            className="flex size-8 items-center justify-center rounded-full border border-border bg-secondary/80 text-foreground transition hover:border-primary hover:bg-secondary cursor-pointer"
+            className="flex size-9 items-center justify-center rounded-full border-2 border-primary bg-secondary/80 text-primary shadow-[0_0_12px_rgba(0,245,212,0.2)] transition-all hover:scale-105 hover:bg-primary/20 hover:shadow-[0_0_18px_rgba(0,245,212,0.4)] cursor-pointer"
             aria-label="Scroll left"
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-4 stroke-[2.5]" />
           </button>
           <button
             type="button"
             onClick={scrollRight}
-            className="flex size-8 items-center justify-center rounded-full border border-border bg-secondary/80 text-foreground transition hover:border-primary hover:bg-secondary cursor-pointer"
+            className="flex size-9 items-center justify-center rounded-full border-2 border-primary bg-secondary/80 text-primary shadow-[0_0_12px_rgba(0,245,212,0.2)] transition-all hover:scale-105 hover:bg-primary/20 hover:shadow-[0_0_18px_rgba(0,245,212,0.4)] cursor-pointer"
             aria-label="Scroll right"
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-4 stroke-[2.5]" />
           </button>
         </div>
       </div>
@@ -820,8 +820,8 @@ function GeoRecommendationsCarousel({
               loadNextPage();
             }
           }}
-          className="flex gap-4 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory"
-          style={{ scrollbarWidth: "thin" }}
+          className="no-scrollbar flex gap-4 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {items.map((show) => (
             <div
