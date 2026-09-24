@@ -428,15 +428,14 @@ function Index() {
               <h2 className="text-sm font-semibold tracking-wide uppercase text-foreground/80">
                 Filter by Genre, City and Date Range
               </h2>
-              {activeFilterCount > 0 && (
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-                >
-                  <RotateCcw className="size-3" /> Reset filters
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="size-3.5 text-primary stroke-[2.2]" />
+                <span>Reset filters</span>
+              </button>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -479,12 +478,20 @@ function Index() {
               </Field>
             </div>
 
-            <div className="mt-4 flex items-center justify-end gap-2">
+            <div className="mt-4 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="chip cursor-pointer inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium"
+              >
+                <RotateCcw className="size-3.5 text-primary stroke-[2]" />
+                <span>Reset filters</span>
+              </button>
               <button
                 type="button"
                 onClick={() => runSearch({ keyword: filterGenre, city: filterCity, startDate, endDate })}
                 disabled={loading}
-                className="btn-primary px-5 py-2 text-sm flex items-center gap-2"
+                className="btn-primary px-5 py-2 text-sm flex items-center gap-2 cursor-pointer"
               >
                 {loading && <Loader2 className="size-3.5 animate-spin" />}
                 Apply filters
@@ -568,9 +575,9 @@ function Index() {
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="chip px-4 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer hover:border-primary"
+                  className="chip px-4 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer hover:border-primary text-primary"
                 >
-                  <RotateCcw className="size-3.5" /> Reset to all upcoming shows
+                  <RotateCcw className="size-3.5 text-primary stroke-[2]" /> Reset to all upcoming shows
                 </button>
               </div>
             </div>
