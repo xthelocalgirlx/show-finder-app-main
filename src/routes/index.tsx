@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getShows, type Show } from "@/lib/shows.functions";
+import { getShows, getArtistBio, type Show } from "@/lib/shows.functions";
 import {
   Calendar,
   MapPin,
@@ -19,6 +19,8 @@ import {
   RotateCcw,
   Ticket,
   ArrowUp,
+  Globe,
+  Info,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -955,6 +957,13 @@ function EventDetailsModal({
   show: Show | null;
   onClose: () => void;
 }) {
+  const fetchBio = useServerFn(getArtistBio);
+  const [bioData, setBioData] = useState<{
+    loading: boolean;
+    bio: string | null;
+    source?: string | undefined;
+  }>({ loading: false, bio: null });
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -969,7 +978,50 @@ function EventDetailsModal({
     };
   }, [show, onClose]);
 
+  useEffect(() => {
+    if (!show) {
+      setBioData({ loading: false, bio: null });
+      return;
+    }
+    let isCurrent = true;
+    setBioData({ loading: true, bio: null });
+
+    fetchBio({
+      data: {
+        artist: show.artist,
+        wikiUrl: show.externalLinks?.wiki,
+      },
+    })
+      .then((res) => {
+        if (isCurrent) {
+          setBioData({
+            loading: false,
+            bio: res?.bio || null,
+            source: res?.source,
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not load artist bio:", err);
+        if (isCurrent) {
+          setBioData({ loading: false, bio: null });
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [show?.id, show?.artist, show?.externalLinks?.wiki, fetchBio]);
+
   if (!show) return null;
+
+  const hasExternalLinks = Boolean(
+    show.externalLinks?.spotify ||
+      show.externalLinks?.itunes ||
+      show.externalLinks?.youtube ||
+      show.externalLinks?.instagram ||
+      show.externalLinks?.homepage,
+  );
 
   return (
     <div
@@ -1010,15 +1062,118 @@ function EventDetailsModal({
               <Music className="size-12 text-muted-foreground" />
             </div>
           )}
-          <span className="absolute bottom-3 left-4 rounded-full border border-brand/50 bg-brand/90 px-3 py-0.5 text-xs font-semibold text-white shadow">
-            {show.genre}
-          </span>
+          <div className="absolute bottom-3 left-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-brand/50 bg-brand/90 px-3 py-0.5 text-xs font-semibold text-white shadow">
+              {show.genre}
+            </span>
+            {show.subGenre && show.subGenre !== show.genre && (
+              <span className="rounded-full border border-primary/30 bg-card/85 backdrop-blur-sm px-2.5 py-0.5 text-xs font-medium text-primary shadow">
+                {show.subGenre}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Title & Artist */}
         <h3 id="event-modal-title" className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           {show.artist}
         </h3>
+
+        {/* Music & Social Badges */}
+        {hasExternalLinks && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {show.externalLinks?.spotify && (
+              <a
+                href={show.externalLinks.spotify}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-colors"
+              >
+                <Music className="size-3" />
+                <span>Spotify</span>
+                <ExternalLink className="size-2.5 opacity-70" />
+              </a>
+            )}
+            {show.externalLinks?.itunes && (
+              <a
+                href={show.externalLinks.itunes}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-pink-500/40 bg-pink-500/10 px-3 py-1 text-xs font-medium text-pink-400 hover:bg-pink-500/20 hover:border-pink-500/60 transition-colors"
+              >
+                <Music className="size-3" />
+                <span>Apple Music</span>
+                <ExternalLink className="size-2.5 opacity-70" />
+              </a>
+            )}
+            {show.externalLinks?.youtube && (
+              <a
+                href={show.externalLinks.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-400 hover:bg-red-500/20 hover:border-red-500/60 transition-colors"
+              >
+                <span>YouTube</span>
+                <ExternalLink className="size-2.5 opacity-70" />
+              </a>
+            )}
+            {show.externalLinks?.instagram && (
+              <a
+                href={show.externalLinks.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/40 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-300 hover:bg-purple-500/20 hover:border-purple-500/60 transition-colors"
+              >
+                <span>Instagram</span>
+                <ExternalLink className="size-2.5 opacity-70" />
+              </a>
+            )}
+            {show.externalLinks?.homepage && (
+              <a
+                href={show.externalLinks.homepage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20 hover:border-primary/60 transition-colors"
+              >
+                <Globe className="size-3" />
+                <span>Official Site</span>
+                <ExternalLink className="size-2.5 opacity-70" />
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* About the Artist / Bio Summary */}
+        {bioData.loading ? (
+          <div className="mt-4 rounded-xl border border-border/80 bg-secondary/30 p-4 animate-pulse">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="size-3.5 rounded-full bg-primary/40" />
+              <div className="h-3 w-28 rounded bg-muted/60" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-2.5 w-full rounded bg-muted/40" />
+              <div className="h-2.5 w-11/12 rounded bg-muted/40" />
+              <div className="h-2.5 w-4/6 rounded bg-muted/40" />
+            </div>
+          </div>
+        ) : bioData.bio ? (
+          <div className="mt-4 rounded-xl border border-primary/20 bg-secondary/30 p-4 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-primary" />
+                About the Artist
+              </h4>
+              {bioData.source && (
+                <span className="text-[10px] text-muted-foreground/75 font-mono">
+                  via {bioData.source}
+                </span>
+              )}
+            </div>
+            <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed font-normal">
+              {bioData.bio}
+            </p>
+          </div>
+        ) : null}
 
         {/* Summarized Details List */}
         <div className="mt-4 space-y-3 rounded-xl border border-border/80 bg-secondary/40 p-4">
@@ -1055,6 +1210,19 @@ function EventDetailsModal({
               </p>
             </div>
           </div>
+
+          {/* Event / Tour Notes */}
+          {show.info && (
+            <div className="flex items-start gap-3 pt-2 border-t border-border/50">
+              <Info className="mt-0.5 size-4 text-primary shrink-0" />
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Event Notes</p>
+                <p className="text-xs text-foreground/85 leading-relaxed mt-0.5">
+                  {show.info}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Get Tickets CTA */}

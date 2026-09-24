@@ -5,13 +5,23 @@ export type Show = {
   id: string;
   artist: string;
   genre: string;
+  subGenre?: string | undefined;
   venue: string;
-  venueCity?: string;
+  venueCity?: string | undefined;
   date: string; // YYYY-MM-DD
   time: string | null;
   price: string | null;
   url: string;
   image: string | null;
+  info?: string | null | undefined;
+  externalLinks?: {
+    spotify?: string | undefined;
+    itunes?: string | undefined;
+    youtube?: string | undefined;
+    instagram?: string | undefined;
+    homepage?: string | undefined;
+    wiki?: string | undefined;
+  } | undefined;
 };
 
 function range(when?: string) {
@@ -107,10 +117,23 @@ export const getShows = createServerFn({ method: "POST" })
       const venueObj = e._embedded?.venues?.[0];
       const venueName = venueObj?.name ?? "";
       const venueCity = venueObj?.city?.name ?? "";
+      const links = attraction?.externalLinks;
+      const externalLinks = links
+        ? {
+            spotify: links.spotify?.[0]?.url,
+            itunes: links.itunes?.[0]?.url,
+            youtube: links.youtube?.[0]?.url,
+            instagram: links.instagram?.[0]?.url,
+            homepage: links.homepage?.[0]?.url,
+            wiki: links.wiki?.[0]?.url,
+          }
+        : undefined;
+
       return {
         id: e.id,
         artist: attraction?.name ?? e.name,
         genre: e.classifications?.[0]?.genre?.name ?? "Live music",
+        subGenre: e.classifications?.[0]?.subGenre?.name,
         venue: venueName,
         venueCity: venueCity,
         date: e.dates?.start?.localDate ?? "",
@@ -118,6 +141,69 @@ export const getShows = createServerFn({ method: "POST" })
         price: pr ? `${pr.currency === "USD" ? "$" : pr.currency + " "}${Math.round(pr.min)}` : null,
         url: e.url,
         image: img?.url ?? null,
+        info: e.info || e.pleaseNote || null,
+        externalLinks,
       };
     });
+  });
+
+export const getArtistBio = createServerFn({ method: "POST" })
+  .validator((d: unknown) =>
+    z
+      .object({
+        artist: z.string(),
+        wikiUrl: z.string().optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data }): Promise<{ bio: string | null; source?: string }> => {
+    const { artist, wikiUrl } = data;
+    try {
+      let title = "";
+      if (wikiUrl) {
+        const match = wikiUrl.match(/\/wiki\/([^/?#]+)/);
+        if (match && match[1]) title = decodeURIComponent(match[1]);
+      }
+      if (!title) {
+        const searchRes = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artist)}&format=json&origin=*`,
+          { headers: { "User-Agent": "ConcertFinderApp/1.0" } },
+        );
+        const searchData = await searchRes.json();
+        const hit = searchData?.query?.search?.[0];
+        if (hit?.title) title = hit.title;
+      }
+      if (!title) return { bio: null };
+
+      let summaryRes = await fetch(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+        { headers: { "User-Agent": "ConcertFinderApp/1.0" } },
+      );
+      if (!summaryRes.ok) return { bio: null };
+      let summary = await summaryRes.json();
+
+      if (
+        summary.type === "disambiguation" ||
+        summary.description?.toLowerCase().includes("given name") ||
+        summary.extract?.toLowerCase().includes("given name")
+      ) {
+        const retryRes = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artist + " musician")}&format=json&origin=*`,
+          { headers: { "User-Agent": "ConcertFinderApp/1.0" } },
+        );
+        const retryData = await retryRes.json();
+        const retryHit = retryData?.query?.search?.[0];
+        if (retryHit?.title && retryHit.title !== title) {
+          const sRes = await fetch(
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(retryHit.title)}`,
+            { headers: { "User-Agent": "ConcertFinderApp/1.0" } },
+          );
+          if (sRes.ok) summary = await sRes.json();
+        }
+      }
+
+      return { bio: summary.extract || null, source: "Wikipedia" };
+    } catch {
+      return { bio: null };
+    }
   });
