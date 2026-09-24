@@ -127,6 +127,7 @@ function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSearchLabel, setActiveSearchLabel] = useState<string>("");
+  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
 
   const fetchShows = useServerFn(getShows);
 
@@ -554,6 +555,7 @@ function Index() {
               city={filterCity || geo?.city}
               lat={geo?.lat}
               lng={geo?.lng}
+              onSelectShow={setSelectedShow}
             />
           </div>
         )}
@@ -564,7 +566,8 @@ function Index() {
             {shows.map((s) => (
               <li
                 key={s.id}
-                className="card-panel flex flex-col justify-between overflow-hidden p-4 transition-all duration-200 hover:border-primary/40 hover:shadow-glow"
+                onClick={() => setSelectedShow(s)}
+                className="card-panel flex flex-col justify-between overflow-hidden p-4 transition-all duration-200 hover:border-primary/40 hover:shadow-glow cursor-pointer"
               >
                 <div className="flex gap-4">
                   {s.image ? (
@@ -607,7 +610,8 @@ function Index() {
                     href={s.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                    className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium cursor-pointer"
                   >
                     <span>Get Tickets</span>
                     <ExternalLink className="size-3" />
@@ -622,6 +626,9 @@ function Index() {
           Real live listings & ticketing links provided via Ticketmaster Discovery API.
         </footer>
       </section>
+
+      {/* Event Details Modal */}
+      <EventDetailsModal show={selectedShow} onClose={() => setSelectedShow(null)} />
 
       {/* Floating Back to Top button when scrolled out of viewport */}
       <BackToTop />
@@ -655,10 +662,12 @@ function GeoRecommendationsCarousel({
   city,
   lat,
   lng,
+  onSelectShow,
 }: {
   city?: string | undefined;
   lat?: number | undefined;
   lng?: number | undefined;
+  onSelectShow?: ((show: Show) => void) | undefined;
 }) {
   const [items, setItems] = useState<Show[]>([]);
   const [page, setPage] = useState(0);
@@ -826,7 +835,8 @@ function GeoRecommendationsCarousel({
           {items.map((show) => (
             <div
               key={show.id}
-              className="w-64 sm:w-72 shrink-0 snap-start card-panel flex flex-col justify-between overflow-hidden p-3.5 transition-all duration-200 hover:border-primary/40 hover:shadow-glow"
+              onClick={() => onSelectShow?.(show)}
+              className="w-64 sm:w-72 shrink-0 snap-start card-panel flex flex-col justify-between overflow-hidden p-3.5 transition-all duration-200 hover:border-primary/40 hover:shadow-glow cursor-pointer"
             >
               <div>
                 <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-secondary">
@@ -874,7 +884,8 @@ function GeoRecommendationsCarousel({
                   href={show.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="btn-primary inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                  className="btn-primary inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium cursor-pointer"
                 >
                   <span>Tickets</span>
                   <ExternalLink className="size-3" />
@@ -934,6 +945,135 @@ function BackToTop() {
     >
       <ArrowUp className="h-6 w-6 stroke-[2.5]" aria-hidden />
     </button>
+  );
+}
+
+function EventDetailsModal({
+  show,
+  onClose,
+}: {
+  show: Show | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (show) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", onKey);
+    }
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [show, onClose]);
+
+  if (!show) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="event-modal-title"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6"
+    >
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/85 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Modal Card */}
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-2xl transition-all sm:p-7 max-h-[90vh] overflow-y-auto">
+        {/* Teal Close X Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close modal"
+          className="absolute right-4 top-4 z-20 flex size-9 items-center justify-center rounded-full border border-primary/60 bg-secondary/90 text-primary shadow-[0_0_14px_rgba(0,245,212,0.35)] transition-all hover:scale-110 hover:bg-primary/20 hover:border-primary cursor-pointer"
+        >
+          <X className="size-5 stroke-[2.5] text-primary" />
+        </button>
+
+        {/* Artwork Banner */}
+        <div className="relative -mx-6 -mt-6 sm:-mx-7 sm:-mt-7 mb-5 aspect-video w-[calc(100%+3rem)] sm:w-[calc(100%+3.5rem)] overflow-hidden bg-secondary">
+          {show.image ? (
+            <img
+              src={show.image}
+              alt={show.artist}
+              className="size-full object-cover"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center">
+              <Music className="size-12 text-muted-foreground" />
+            </div>
+          )}
+          <span className="absolute bottom-3 left-4 rounded-full border border-brand/50 bg-brand/90 px-3 py-0.5 text-xs font-semibold text-white shadow">
+            {show.genre}
+          </span>
+        </div>
+
+        {/* Title & Artist */}
+        <h3 id="event-modal-title" className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          {show.artist}
+        </h3>
+
+        {/* Summarized Details List */}
+        <div className="mt-4 space-y-3 rounded-xl border border-border/80 bg-secondary/40 p-4">
+          {/* Date & Time */}
+          <div className="flex items-start gap-3">
+            <Calendar className="mt-0.5 size-4 text-primary shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Date & Time</p>
+              <p className="text-sm font-medium text-foreground">
+                {fmtDay(show.date)} {show.time && `· ${fmtTime(show.time)}`}
+              </p>
+            </div>
+          </div>
+
+          {/* Venue & Location */}
+          <div className="flex items-start gap-3">
+            <MapPin className="mt-0.5 size-4 text-primary shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Venue & City</p>
+              <p className="text-sm font-medium text-foreground">
+                {show.venue || "Venue to be announced"}
+                {show.venueCity && ` (${show.venueCity})`}
+              </p>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div className="flex items-start gap-3">
+            <Ticket className="mt-0.5 size-4 text-primary shrink-0" />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Admission</p>
+              <p className="text-sm font-medium text-foreground">
+                {show.price ? `Tickets from ${show.price}` : "Pricing available on provider site"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Get Tickets CTA */}
+        <div className="mt-6 flex flex-col gap-2">
+          <a
+            href={show.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary flex w-full items-center justify-center gap-2 py-3 text-base font-bold shadow-[0_0_20px_rgba(0,245,212,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_0_28px_rgba(0,245,212,0.65)] cursor-pointer"
+          >
+            <span>Get Tickets</span>
+            <ExternalLink className="size-4" />
+          </a>
+          <p className="text-center text-[11px] text-muted-foreground">
+            Official ticketing through Ticketmaster
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
