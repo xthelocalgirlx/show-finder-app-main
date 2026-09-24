@@ -24,6 +24,8 @@ declare global {
   }
 }
 
+import { logErrorToSupabase } from "./supabase";
+
 export function reportLovableError(error: unknown, context: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
@@ -56,4 +58,11 @@ export function reportLovableError(error: unknown, context: Record<string, unkno
     ...(stack !== undefined && { stack }),
     filename: window.location.pathname,
   });
+
+  // Log error to Supabase error_logs table
+  logErrorToSupabase("ERROR", message, {
+    ...context,
+    stack,
+    route: window.location.pathname,
+  }).catch(() => {});
 }

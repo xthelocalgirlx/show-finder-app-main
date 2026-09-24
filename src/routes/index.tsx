@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getShows, getArtistBio, type Show } from "@/lib/shows.functions";
+import { logErrorToSupabase } from "@/lib/supabase";
 import {
   Calendar,
   MapPin,
@@ -181,6 +182,12 @@ function Index() {
       } catch (err: any) {
         console.error("Search failed:", err);
         setError("Couldn't retrieve shows right now. Please try again.");
+        logErrorToSupabase("ERROR", err?.message || "Search failed", {
+          service: "concert_search",
+          keyword: targetKeyword,
+          city: targetCity,
+          when: targetWhen,
+        });
       } finally {
         setLoading(false);
       }
