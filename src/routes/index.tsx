@@ -18,6 +18,7 @@ import {
   X,
   RotateCcw,
   Ticket,
+  ArrowUp,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -106,6 +107,7 @@ function fmtTime(t: string | null) {
 type Geo = { city?: string | undefined; lat?: number | undefined; lng?: number | undefined };
 
 function Index() {
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [when, setWhen] = useState<WhenOption>("This weekend");
   const [showFilters, setShowFilters] = useState(false);
@@ -265,8 +267,8 @@ function Index() {
     runSearch({ when: selectedWhen });
   };
 
-  // Clear all filters
-  const handleResetFilters = () => {
+  // Clear all filters, reset fields, and focus search input
+  const handleClear = () => {
     setQuery("");
     setFilterGenre("");
     setFilterCity(geo?.city ?? "");
@@ -274,6 +276,14 @@ function Index() {
     setEndDate("");
     setWhen("This weekend");
     runSearch({ keyword: "", city: geo?.city, when: "This weekend" });
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
+
+  const handleResetFilters = () => {
+    handleClear();
   };
 
   const activeFilterCount = [
@@ -310,8 +320,8 @@ function Index() {
           {query && (
             <button
               type="button"
-              onClick={() => setQuery("")}
-              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+              onClick={handleClear}
+              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 cursor-pointer"
             >
               <X className="size-3" /> Clear
             </button>
@@ -322,6 +332,7 @@ function Index() {
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
+              ref={searchInputRef}
               className="field pl-10 pr-4 text-sm sm:text-base"
               placeholder="e.g. Punk-ish rock in Montréal this weekend"
               value={query}
@@ -520,13 +531,22 @@ function Index() {
                 We couldn't find any concerts matching {activeSearchLabel || "your query"}. Try expanding your date range,
                 clearing specific genre filters, or searching a nearby major city.
               </p>
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="mt-4 btn-primary px-4 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <RotateCcw className="size-3" /> Reset to all upcoming shows
-              </button>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="btn-primary px-4 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <X className="size-3.5" /> Clear and search again
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="chip px-4 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer hover:border-primary"
+                >
+                  <RotateCcw className="size-3.5" /> Reset to all upcoming shows
+                </button>
+              </div>
             </div>
 
             {/* Recommendations row below the RESET TO ALL UPCOMING SHOWS CTA */}
@@ -602,6 +622,9 @@ function Index() {
           Real live listings & ticketing links provided via Ticketmaster Discovery API.
         </footer>
       </section>
+
+      {/* Floating Back to Top button when scrolled out of viewport */}
+      <BackToTop />
     </main>
   );
 }
@@ -887,3 +910,30 @@ function GeoRecommendationsCarousel({
     </div>
   );
 }
+
+function BackToTop() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 300);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <button
+      id="backToTop"
+      type="button"
+      aria-label="Back to top"
+      title="Back to top"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className="fixed bottom-6 right-6 z-[1000] flex h-12 w-12 items-center justify-center rounded-full bg-[#00F5D4] text-[#02060B] shadow-[0_0_20px_rgba(0,245,212,0.45)] transition-all hover:scale-110 hover:bg-[#2effdf] hover:shadow-[0_0_30px_rgba(0,245,212,0.7)] cursor-pointer"
+    >
+      <ArrowUp className="h-6 w-6 stroke-[2.5]" aria-hidden />
+    </button>
+  );
+}
+
