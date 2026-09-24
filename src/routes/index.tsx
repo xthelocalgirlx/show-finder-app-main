@@ -26,17 +26,20 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Encore — Find your next live show" },
+      { title: "Concert Ticket Finder | Search Live Music & Events Near You" },
       {
         name: "description",
         content:
-          "Search real concert listings by vibe, city or date. Describe what you want in a sentence and get live shows near you.",
+          "Find upcoming concerts, live music events, and music festivals in your area. Search by artist, city, or venue and book your concert tickets today!",
       },
-      { property: "og:title", content: "Encore — Find your next live show" },
+      {
+        property: "og:title",
+        content: "Concert Ticket Finder | Search Live Music & Events Near You",
+      },
       {
         property: "og:description",
         content:
-          "Search real concert listings by vibe, city or date. Describe what you want in a sentence and get live shows near you.",
+          "Find upcoming concerts, live music events, and music festivals in your area. Search by artist, city, or venue and book your concert tickets today!",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -325,7 +328,7 @@ function Index() {
           FEELING CHEEKY? · AI SENTENCE SEARCH
         </span>
         <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-          Find your next live show
+          Find Your Next Concert
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground text-sm sm:text-base">
           Describe the vibe, genre, city and date in one sentence. We scour real listings so you never miss a beat.

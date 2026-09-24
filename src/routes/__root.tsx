@@ -77,14 +77,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Concert Ticket Finder | Search Live Music & Events Near You" },
+      {
+        name: "description",
+        content:
+          "Find upcoming concerts, live music events, and music festivals in your area. Search by artist, city, or venue and book your concert tickets today!",
+      },
+      { name: "author", content: "FYC" },
+      {
+        property: "og:title",
+        content: "Concert Ticket Finder | Search Live Music & Events Near You",
+      },
+      {
+        property: "og:description",
+        content:
+          "Find upcoming concerts, live music events, and music festivals in your area. Search by artist, city, or venue and book your concert tickets today!",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@FYC" },
     ],
     links: [
       {
