@@ -297,8 +297,28 @@ function Index() {
   ].reduce((a, b) => a + b, 0);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-8 px-4 py-12 sm:px-6">
-      {/* Header */}
+    <div className="min-h-screen">
+      {/* Top Left Logo Navigation */}
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-5 pb-1">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            // Clicking on it does nothing for now
+          }}
+          className="group inline-flex items-center transition-all cursor-default focus:outline-none"
+          aria-label="FYC Logo"
+        >
+          <img
+            src="/logo.png"
+            alt="FYC Logo"
+            className="h-9 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+          />
+        </button>
+      </div>
+
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 pb-12 pt-2 sm:px-6">
+        {/* Header */}
       <header className="text-center">
         <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/10 px-3.5 py-1 text-brand font-medium">
           <Sparkles className="size-3.5 animate-pulse" />
@@ -635,6 +655,7 @@ function Index() {
       {/* Floating Back to Top button when scrolled out of viewport */}
       <BackToTop />
     </main>
+    </div>
   );
 }
 
