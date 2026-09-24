@@ -305,8 +305,7 @@ function Index() {
         <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-brand" />
-            <span className="font-medium text-foreground">Natural Language Search</span>
-            <span className="hidden text-xs sm:inline text-muted-foreground">— type what you feel</span>
+            <span className="font-medium text-foreground">What type of show are you looking for?</span>
           </div>
           {query && (
             <button
